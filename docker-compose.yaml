@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  catalog-api-pg:
+    image: bitnami/postgresql
+    ports:
+      - 5433:5432
+    environment:
+      - POSTGRESQL_USERNAME=caio
+      - POSTGRESQL_PASSWORD=123456
+      - POSTGRESQL_DATABASE=imersao
