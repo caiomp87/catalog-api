@@ -2,21 +2,28 @@ package main
 
 import (
 	"database/sql"
-	"os"
+	"fmt"
 
 	"github.com/caiomp87/catalog-api/cmd/routes"
+	"github.com/caiomp87/catalog-api/internal/env"
 	"github.com/caiomp87/catalog-api/internal/repositories/category_repository"
 	"github.com/caiomp87/catalog-api/internal/repositories/product_repository"
 	"github.com/caiomp87/catalog-api/internal/use-cases/category_use_case"
 	"github.com/caiomp87/catalog-api/internal/use-cases/product_use_case"
 	"github.com/gin-gonic/gin"
+	_ "github.com/joho/godotenv/autoload"
 	_ "github.com/lib/pq"
 	"go.uber.org/zap"
 )
 
 func init() {
 	logger := zap.Must(zap.NewDevelopment())
-	if os.Getenv("APP_ENV") == "production" {
+
+	appEnv := env.GetEnv("APP_ENV").FallbackString("development")
+
+	fmt.Println(appEnv)
+
+	if appEnv == "production" {
 		logger = zap.Must(zap.NewDevelopment())
 	}
 
@@ -24,7 +31,10 @@ func init() {
 }
 
 func main() {
-	conn, err := sql.Open("postgres", "postgresql://caio:123456@localhost:5433/imersao?sslmode=disable")
+	driver := env.GetEnv("DATABASE_DRIVE").FallbackString("postgres")
+	dbUrl := env.GetEnv("DATABASE_URL").String()
+
+	conn, err := sql.Open(driver, dbUrl)
 	if err != nil {
 		zap.L().Fatal("failed to connect to database", zap.Error(err))
 	}
@@ -41,9 +51,11 @@ func main() {
 	routes.AddCategoriesRoutes(server)
 	routes.AddProductsRoutes(server)
 
-	zap.L().Info("[x] API is running", zap.String("port", "3333"))
+	port := env.GetEnv("API_PORT").FallbackString("3333")
 
-	if err := server.Run(":3333"); err != nil {
+	zap.L().Info("[x] API is running", zap.String("port", port))
+
+	if err := server.Run(":" + port); err != nil {
 		zap.L().Fatal("failed to serve", zap.Error(err))
 	}
 }
