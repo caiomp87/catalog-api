@@ -24,7 +24,7 @@ func init() {
 	fmt.Println(appEnv)
 
 	if appEnv == "production" {
-		logger = zap.Must(zap.NewDevelopment())
+		logger = zap.Must(zap.NewProduction())
 	}
 
 	zap.ReplaceGlobals(logger)
